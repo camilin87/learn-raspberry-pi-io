@@ -24,15 +24,6 @@ if [[ "$?" -ne 0 ]]; then
 fi
 
 
-echo "Running the tests"
-mvn clean test
-
-if [[ "$?" -ne 0 ]]; then
-    echo "ERROR: Tests Failed"
-    exit 3
-fi
-
-
 echo "Packaging the app"
 mvn clean package
 
