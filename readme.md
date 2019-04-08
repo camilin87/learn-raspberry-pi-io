@@ -28,10 +28,11 @@ mvn clean test
 java -cp target/learnrpi-*.jar com.tddapps.learnrpi.Program
 ```
 
-## Install Java on the Raspberry Pi  
+## Install Dependencies on the Raspberry Pi  
 
 [How to use the Debian Backports](https://github.com/superjamie/lazyweb/wiki/Raspberry-Pi-Debian-Backports)  
 [Fix missing dinmgr](https://blog.sleeplessbeastie.eu/2017/11/02/how-to-fix-missing-dirmngr/)  
+[Wiring Pi](http://wiringpi.com/)  
 
 ```bash
 sudo apt-get update
@@ -42,9 +43,10 @@ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7638D0442B90D010
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B48AD6246925553
 
 echo 'deb http://httpredir.debian.org/debian stretch-backports main contrib non-free' | sudo tee -a /etc/apt/sources.list.d/debian-backports.list
-
 sudo apt-get update
+
 sudo apt-get install -t stretch-backports -y openjdk-11-jre
+sudo apt-get install -y wiringpi
 ```
 
 ## Deployment  

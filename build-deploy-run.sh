@@ -24,8 +24,17 @@ if [[ "$?" -ne 0 ]]; then
 fi
 
 
+echo "Running the tests"
+mvn clean test
+
+if [[ "$?" -ne 0 ]]; then
+    echo "ERROR: Tests Failed"
+    exit 3
+fi
+
+
 echo "Packaging the app"
-mvn clean package
+mvn clean compile assembly:single
 
 if [[ "$?" -ne 0 ]]; then
     echo "ERROR: Package Failed"
