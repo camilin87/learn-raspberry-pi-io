@@ -66,3 +66,9 @@ Run the application remotely
 ```bash
 ssh -t pi@${RASPBERRY_PI_IP} java -cp /home/pi/learnrpi-*.jar com.tddapps.learnrpi.Program
 ```
+
+## Build, Deploy, Run combo  
+
+```bash
+sh build-deploy-run.sh ${RASPBERRY_PI_IP}
+```
