@@ -28,12 +28,10 @@ mvn clean test
 java -cp target/learnrpi-*.jar com.tddapps.learnrpi.Program
 ```
 
-## Deployment  
+## Install Java on the Raspberry Pi  
 
 [How to use the Debian Backports](https://github.com/superjamie/lazyweb/wiki/Raspberry-Pi-Debian-Backports)  
 [Fix missing dinmgr](https://blog.sleeplessbeastie.eu/2017/11/02/how-to-fix-missing-dirmngr/)  
-
-Install Java on the Raspberry Pi  
 
 ```bash
 sudo apt-get update
@@ -49,26 +47,8 @@ sudo apt-get update
 sudo apt-get install -t stretch-backports -y openjdk-11-jre
 ```
 
-Setup the Raspberry Pi target  
+## Deployment  
 
 ```bash
-RASPBERRY_PI_IP=192.168.1.2
-```
-
-Deploy the application  
-
-```bash
-scp target/learnrpi-*.jar pi@${RASPBERRY_PI_IP}:~/
-```
-
-Run the application remotely  
-
-```bash
-ssh -t pi@${RASPBERRY_PI_IP} java -cp /home/pi/learnrpi-*.jar com.tddapps.learnrpi.Program
-```
-
-## Build, Deploy, Run combo  
-
-```bash
-sh build-deploy-run.sh ${RASPBERRY_PI_IP}
+sh build-deploy-run.sh 192.168.1.2
 ```
