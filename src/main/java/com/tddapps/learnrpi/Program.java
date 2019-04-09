@@ -6,6 +6,10 @@ public class Program {
     public static void main(String[] args) throws InterruptedException {
         System.out.println("Starting");
 
+        BlinkLed();
+    }
+
+    private static void BlinkLed() throws InterruptedException {
         final var gpio = GpioFactory.getInstance();
 
         final var pin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_01, "RedLED", PinState.LOW);
