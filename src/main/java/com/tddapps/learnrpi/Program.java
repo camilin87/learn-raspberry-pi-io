@@ -3,6 +3,7 @@ package com.tddapps.learnrpi;
 import com.pi4j.io.gpio.*;
 
 import java.util.Arrays;
+import java.util.concurrent.Executors;
 
 public class Program {
     public static void main(String[] args) throws InterruptedException {
@@ -31,15 +32,23 @@ public class Program {
     }
 
     private static void MoveStepper() throws InterruptedException {
-        final var gpio = GpioFactory.getInstance();
+        Executors.newSingleThreadExecutor().execute(() -> {
+            // These are BCM GPIO pins 17, 22, 23 and 24. Numbers are different because of wiringpi
+            try {
+                MoveSingleStepper(new Pin[]{
+                        RaspiPin.GPIO_00,
+                        RaspiPin.GPIO_03,
+                        RaspiPin.GPIO_04,
+                        RaspiPin.GPIO_05
+                });
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+    }
 
-        // These are BCM GPIO pins 17, 22, 23 and 24. Numbers are different because of wiringpi
-        final var pinsIds = new Pin[]{
-                RaspiPin.GPIO_00,
-                RaspiPin.GPIO_03,
-                RaspiPin.GPIO_04,
-                RaspiPin.GPIO_05
-        };
+    private static void MoveSingleStepper(Pin[] pinsIds) throws InterruptedException {
+        final var gpio = GpioFactory.getInstance();
 
         var stepPins = Arrays.stream(pinsIds)
                 .map(p -> {
