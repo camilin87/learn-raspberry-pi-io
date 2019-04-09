@@ -37,12 +37,12 @@ public class Program {
         Executors.newSingleThreadExecutor().execute(() -> {
             // These are BCM GPIO pins 17, 18, 27 and 22. Numbers are different because of wiringpi
             try {
-                MoveSingleStepper(new Pin[]{
+                MoveSingleStepper(gpio, "X", new Pin[]{
                         RaspiPin.GPIO_00,
                         RaspiPin.GPIO_01,
                         RaspiPin.GPIO_02,
                         RaspiPin.GPIO_03
-                }, "X", gpio);
+                }, true);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -51,19 +51,19 @@ public class Program {
         Executors.newSingleThreadExecutor().execute(() -> {
             // These are BCM GPIO pins 23, 24, 25 and 04. Numbers are different because of wiringpi
             try {
-                MoveSingleStepper(new Pin[]{
+                MoveSingleStepper(gpio, "Y", new Pin[]{
                         RaspiPin.GPIO_04,
                         RaspiPin.GPIO_05,
                         RaspiPin.GPIO_06,
                         RaspiPin.GPIO_07
-                }, "Y", gpio);
+                }, false);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         });
     }
 
-    private static void MoveSingleStepper(Pin[] pinsIds, String stepperName, GpioController gpio) throws InterruptedException {
+    private static void MoveSingleStepper(GpioController gpio, String name, Pin[] pinsIds, boolean clockwise) throws InterruptedException {
         var stepPins = Arrays.stream(pinsIds)
                 .map(p -> {
                     var pin = gpio.provisionDigitalOutputPin(p, p.toString(), PinState.LOW);
@@ -84,8 +84,7 @@ public class Program {
                 new int []{0, 0, 0, 1}
         };
 
-        // use 1 for CW, -1 for CCW
-        var stepDirection = 1;
+        var stepDirection = clockwise ? 1 : -1;
 
         var pinCount = stepPins.length;
         var stepCount = movementSequence.length;
@@ -95,19 +94,19 @@ public class Program {
             var currentStep = movementSequence[stepIndex];
 
             System.out.println(String.format("[%s] Step; index: %d; pins: %s;",
-                    stepperName, stepIndex, Arrays.toString(currentStep)));
+                    name, stepIndex, Arrays.toString(currentStep)));
 
             for (int i = 0; i < pinCount; i++) {
                 if (currentStep[i] == 0){
                     stepPins[i].low();
                 }
                 else {
-                    System.out.println(String.format("[%s] Enable %s", stepperName, stepPins[i].getName()));
+                    System.out.println(String.format("[%s] Enable %s", name, stepPins[i].getName()));
                     stepPins[i].high();
                 }
             }
 
-            stepIndex++;
+            stepIndex += stepDirection;
             if (stepIndex >= stepCount){
                 stepIndex = 0;
             }
