@@ -35,13 +35,13 @@ public class Program {
         var gpio = GpioFactory.getInstance();
 
         Executors.newSingleThreadExecutor().execute(() -> {
-            // These are BCM GPIO pins 17, 22, 23 and 24. Numbers are different because of wiringpi
+            // These are BCM GPIO pins 17, 18, 27 and 22. Numbers are different because of wiringpi
             try {
                 MoveSingleStepper(new Pin[]{
                         RaspiPin.GPIO_00,
-                        RaspiPin.GPIO_03,
-                        RaspiPin.GPIO_04,
-                        RaspiPin.GPIO_05
+                        RaspiPin.GPIO_01,
+                        RaspiPin.GPIO_02,
+                        RaspiPin.GPIO_03
                 }, "X", gpio);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -49,13 +49,13 @@ public class Program {
         });
 
         Executors.newSingleThreadExecutor().execute(() -> {
-            // These are BCM GPIO pins 28, 29, 30 and 31. Numbers are different because of wiringpi
+            // These are BCM GPIO pins 23, 24, 25 and 04. Numbers are different because of wiringpi
             try {
                 MoveSingleStepper(new Pin[]{
-                        RaspiPin.GPIO_08,
-                        RaspiPin.GPIO_09,
-                        RaspiPin.GPIO_10,
-                        RaspiPin.GPIO_11
+                        RaspiPin.GPIO_04,
+                        RaspiPin.GPIO_05,
+                        RaspiPin.GPIO_06,
+                        RaspiPin.GPIO_07
                 }, "Y", gpio);
             } catch (InterruptedException e) {
                 e.printStackTrace();
