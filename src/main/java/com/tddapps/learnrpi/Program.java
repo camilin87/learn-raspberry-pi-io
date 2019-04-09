@@ -32,6 +32,8 @@ public class Program {
     }
 
     private static void MoveStepper() throws InterruptedException {
+        var gpio = GpioFactory.getInstance();
+
         Executors.newSingleThreadExecutor().execute(() -> {
             // These are BCM GPIO pins 17, 22, 23 and 24. Numbers are different because of wiringpi
             try {
@@ -40,16 +42,28 @@ public class Program {
                         RaspiPin.GPIO_03,
                         RaspiPin.GPIO_04,
                         RaspiPin.GPIO_05
-                });
+                }, "X", gpio);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+        Executors.newSingleThreadExecutor().execute(() -> {
+            // These are BCM GPIO pins 28, 29, 30 and 31. Numbers are different because of wiringpi
+            try {
+                MoveSingleStepper(new Pin[]{
+                        RaspiPin.GPIO_08,
+                        RaspiPin.GPIO_09,
+                        RaspiPin.GPIO_10,
+                        RaspiPin.GPIO_11
+                }, "Y", gpio);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         });
     }
 
-    private static void MoveSingleStepper(Pin[] pinsIds) throws InterruptedException {
-        final var gpio = GpioFactory.getInstance();
-
+    private static void MoveSingleStepper(Pin[] pinsIds, String stepperName, GpioController gpio) throws InterruptedException {
         var stepPins = Arrays.stream(pinsIds)
                 .map(p -> {
                     var pin = gpio.provisionDigitalOutputPin(p, p.toString(), PinState.LOW);
@@ -80,14 +94,15 @@ public class Program {
         while(true){
             var currentStep = movementSequence[stepIndex];
 
-            System.out.println(String.format("Step; index: %d; pins: %s;", stepIndex, Arrays.toString(currentStep)));
+            System.out.println(String.format("[%s] Step; index: %d; pins: %s;",
+                    stepperName, stepIndex, Arrays.toString(currentStep)));
 
             for (int i = 0; i < pinCount; i++) {
                 if (currentStep[i] == 0){
                     stepPins[i].low();
                 }
                 else {
-                    System.out.println(String.format("Enable %s", stepPins[i].getName()));
+                    System.out.println(String.format("[%s] Enable %s", stepperName, stepPins[i].getName()));
                     stepPins[i].high();
                 }
             }
