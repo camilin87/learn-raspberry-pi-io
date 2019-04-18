@@ -1,6 +1,7 @@
 package com.tddapps.learnrpi;
 
 import com.pi4j.io.gpio.*;
+import lombok.Data;
 
 import java.util.Arrays;
 import java.util.concurrent.Executors;
@@ -37,12 +38,17 @@ public class Program {
         Executors.newSingleThreadExecutor().execute(() -> {
             // These are BCM GPIO pins 17, 18, 27 and 22. Numbers are different because of wiringpi
             try {
-                MoveSingleStepper(gpio, "X", new Pin[]{
+                var config = new MotorMoveConfig();
+                config.setName("X");
+                config.setPinIds(new Pin[]{
                         RaspiPin.GPIO_00,
                         RaspiPin.GPIO_01,
                         RaspiPin.GPIO_02,
                         RaspiPin.GPIO_03
-                }, true);
+                });
+                config.setClockwise(true);
+                config.setRevertMovementAfterSteps(-1);
+                MoveSingleStepper(gpio, config);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -51,20 +57,33 @@ public class Program {
         Executors.newSingleThreadExecutor().execute(() -> {
             // These are BCM GPIO pins 23, 24, 25 and 04. Numbers are different because of wiringpi
             try {
-                MoveSingleStepper(gpio, "Y", new Pin[]{
+                var config = new MotorMoveConfig();
+                config.setName("Y");
+                config.setPinIds(new Pin[]{
                         RaspiPin.GPIO_04,
                         RaspiPin.GPIO_05,
                         RaspiPin.GPIO_06,
                         RaspiPin.GPIO_07
-                }, false);
+                });
+                config.setClockwise(false);
+                config.setRevertMovementAfterSteps(25);
+                MoveSingleStepper(gpio, config);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         });
     }
 
-    private static void MoveSingleStepper(GpioController gpio, String name, Pin[] pinsIds, boolean clockwise) throws InterruptedException {
-        var stepPins = Arrays.stream(pinsIds)
+    @Data
+    private static class MotorMoveConfig {
+        private String name;
+        private Pin[] pinIds;
+        private boolean clockwise;
+        private int revertMovementAfterSteps;
+    }
+
+    private static void MoveSingleStepper(GpioController gpio, MotorMoveConfig config) throws InterruptedException {
+        var stepPins = Arrays.stream(config.getPinIds())
                 .map(p -> {
                     var pin = gpio.provisionDigitalOutputPin(p, p.toString(), PinState.LOW);
                     pin.setShutdownOptions(true, PinState.LOW);
@@ -84,7 +103,7 @@ public class Program {
                 new int []{0, 0, 0, 1}
         };
 
-        var stepDirection = clockwise ? 1 : -1;
+        var stepDirection = config.isClockwise() ? 1 : -1;
 
         var pinCount = stepPins.length;
         var stepCount = movementSequence.length;
@@ -94,14 +113,14 @@ public class Program {
             var currentStep = movementSequence[stepIndex];
 
             System.out.println(String.format("[%s] Step; index: %d; pins: %s;",
-                    name, stepIndex, Arrays.toString(currentStep)));
+                    config.getName(), stepIndex, Arrays.toString(currentStep)));
 
             for (int i = 0; i < pinCount; i++) {
                 if (currentStep[i] == 0){
                     stepPins[i].low();
                 }
                 else {
-                    System.out.println(String.format("[%s] Enable %s", name, stepPins[i].getName()));
+                    System.out.println(String.format("[%s] Enable %s", config.getName(), stepPins[i].getName()));
                     stepPins[i].high();
                 }
             }
