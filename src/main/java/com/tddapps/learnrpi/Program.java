@@ -66,7 +66,7 @@ public class Program {
                         RaspiPin.GPIO_07
                 });
                 config.setClockwise(false);
-                config.setRevertMovementAfterSteps(25);
+                config.setRevertMovementAfterSteps(10000);
                 MoveSingleStepper(gpio, config);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -103,11 +103,11 @@ public class Program {
                 new int []{0, 0, 0, 1}
         };
 
-        var stepDirection = config.isClockwise() ? 1 : -1;
-
         var pinCount = stepPins.length;
         var stepCount = movementSequence.length;
         var stepIndex = 0;
+        var stepNumber = 0L;
+        var stepDirection = config.isClockwise() ? 1 : -1;
 
         while(true){
             var currentStep = movementSequence[stepIndex];
@@ -131,6 +131,11 @@ public class Program {
             }
             if (stepIndex < 0){
                 stepIndex = stepCount - 1;
+            }
+
+            stepNumber++;
+            if (config.getRevertMovementAfterSteps() > 0 && (stepNumber % config.getRevertMovementAfterSteps() == 0)){
+                stepDirection *= -1;
             }
 
             Thread.sleep(1);
