@@ -1,8 +1,12 @@
 package com.tddapps.learnrpi;
 
 import com.pi4j.io.gpio.GpioController;
+import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.Pin;
+import com.pi4j.io.gpio.PinState;
 import lombok.extern.log4j.Log4j2;
+
+import java.util.Arrays;
 
 @Log4j2
 public class StepperMotorUln implements StepperMotor {
@@ -16,10 +20,15 @@ public class StepperMotorUln implements StepperMotor {
             new int []{0, 0, 1, 1},
             new int []{0, 0, 0, 1}
     };
+    private static final int stepCount = movementSequence.length;
+
 
     private final Object statusCriticalSection = new Object();
     private boolean isInitialized = false;
     private boolean isDestroyed = false;
+    private int stepIndex = 0;
+    private GpioPinDigitalOutput[] stepPins = null;
+    private int pinCount = 0;
 
     private final String name;
     private final GpioController gpio;
@@ -40,9 +49,24 @@ public class StepperMotorUln implements StepperMotor {
         synchronized (statusCriticalSection){
             if (isInitialized){
                 log.warn(ToLog("Already Initialized"));
+                return;
             }
 
-            //TODO finish this
+            stepIndex = 0;
+            stepPins = Arrays.stream(pinIds)
+                    .map(p -> {
+                        var pin = gpio.provisionDigitalOutputPin(p, p.toString(), PinState.LOW);
+                        pin.setShutdownOptions(true, PinState.LOW);
+                        pin.low();
+                        return pin;
+                    })
+                    .toArray(GpioPinDigitalOutput[]::new);
+            pinCount = stepPins.length;
+
+            isInitialized = true;
+            isDestroyed = false;
+
+            log.info(ToLog("Initialize"));
         }
     }
 
@@ -51,9 +75,15 @@ public class StepperMotorUln implements StepperMotor {
         synchronized (statusCriticalSection){
             if (isDestroyed){
                 log.warn(ToLog("Already Destroyed"));
+                return;
             }
 
-            //TODO finish this
+            stepPins = null;
+
+            isInitialized = false;
+            isDestroyed = true;
+
+            log.info(ToLog("Destroy"));
         }
     }
 
@@ -62,7 +92,12 @@ public class StepperMotorUln implements StepperMotor {
         synchronized (statusCriticalSection){
             ValidateStatusSupportsMovement();
 
-            //TODO finish this
+            stepIndex += 1;
+            if (stepIndex >= stepCount){
+                stepIndex = 0;
+            }
+
+            Move();
         }
         return true;
     }
@@ -72,7 +107,12 @@ public class StepperMotorUln implements StepperMotor {
         synchronized (statusCriticalSection){
             ValidateStatusSupportsMovement();
 
-            //TODO finish this
+            stepIndex -= 1;
+            if (stepIndex < 0){
+                stepIndex = stepCount - 1;
+            }
+
+            Move();
         }
         return true;
     }
@@ -85,5 +125,23 @@ public class StepperMotorUln implements StepperMotor {
         if (!isInitialized) {
             throw new InvalidOperationException(ToLog("Cannot Move a Motor that has not been initialized"));
         }
+    }
+
+    private void Move(){
+        var currentStep = movementSequence[stepIndex];
+
+        for (int i = 0; i < pinCount; i++) {
+            if (currentStep[i] == 0){
+                stepPins[i].low();
+            }
+            else {
+                log.debug(String.format("[%s] Enable %s", name, stepPins[i].getName()));
+                stepPins[i].high();
+            }
+        }
+
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException e) { }
     }
 }
